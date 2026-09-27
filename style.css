@@ -1,4 +1,6 @@
-/* Reset and base styles */
+/* ==========================================================================
+   1. RESET & BASE STYLES
+   ========================================================================== */
 * {
     margin: 0;
     padding: 0;
@@ -15,7 +17,9 @@ body {
     min-height: 100vh;
 }
 
-/* Navigation Bar */
+/* ==========================================================================
+   2. NAVIGATION BAR
+   ========================================================================== */
 header {
     background-color: #1e293b;
     padding: 1rem 0;
@@ -56,12 +60,15 @@ nav {
     color: #38bdf8;
 }
 
-/* Main Container Layout */
+/* ==========================================================================
+   3. MAIN CONTENT CONTAINER & CARD
+   ========================================================================== */
 main {
     max-width: 1100px;
     margin: 2rem auto;
     padding: 0 2rem;
     flex: 1;
+    width: 100%;
 }
 
 .card {
@@ -70,19 +77,14 @@ main {
     border-radius: 8px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     margin-bottom: 2rem;
-    text_align: center;
-}
-
-.card h1, 
-.card p {
-    text-align: center;
-    width: 100%;
+    text-align: center; /* Centers all inner headings, body text, and inline containers */
 }
 
 h1 {
     color: #0f172a;
     margin-bottom: 1rem;
     font-size: 2.2rem;
+    text-align: center;
 }
 
 p {
@@ -90,7 +92,9 @@ p {
     color: #475569;
 }
 
-/* Primary Button Style */
+/* ==========================================================================
+   4. BUTTONS & FORMS
+   ========================================================================== */
 .btn {
     display: inline-block;
     background-color: #0284c7;
@@ -101,15 +105,17 @@ p {
     font-weight: 600;
     transition: background-color 0.3s ease;
     margin-top: 1rem;
+    border: none;
+    cursor: pointer;
 }
 
 .btn:hover {
     background-color: #0369a1;
 }
 
-/* Contact Form Styling */
 .form-group {
     margin-bottom: 1.2rem;
+    text-align: left; /* Keeps form labels/inputs aligned left inside centered cards */
 }
 
 .form-group label {
@@ -135,11 +141,87 @@ p {
     border-color: #0284c7;
 }
 
-/* Footer */
+/* ==========================================================================
+   5. SECTIONS & SIDE-BY-SIDE IMAGE GRID (UPDATED)
+   ========================================================================== */
+.section-block {
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.section-block:last-child {
+    border-bottom: none;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    color: #0f172a;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.section-desc {
+    color: #475569;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+/* Horizontal flexbox container for images */
+.image-grid {
+    display: flex;
+    flex-direction: row;       /* Forces side-by-side alignment */
+    justify-content: center;   /* Centers the image pair horizontally */
+    align-items: flex-start;   /* Aligns top borders cleanly */
+    gap: 1.5rem;               /* Space between left and right image cards */
+    max-width: 800px;          /* Restricts total grid width so images stay controlled */
+    margin: 1.5rem auto;       /* Centers the container within the card */
+}
+
+/* Individual card wrapper for each image */
+.image-card {
+    flex: 1;                   /* Gives each image equal 50% width allocation */
+    max-width: 350px;          /* Prevents individual images from expanding too large */
+    text-align: center;
+}
+
+/* Responsive image sizing controls */
+.image-card img {
+    width: 100%;               /* Fills the image-card container width */
+    max-height: 250px;         /* Caps vertical growth to prevent tall images taking over */
+    object-fit: contain;       /* Preserves exact image aspect ratio without cropping borders */
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    background-color: #f8fafc; /* Subtle background for transparent/cropped images */
+}
+
+.image-caption {
+    font-size: 0.9rem;
+    color: #64748b;
+    margin-top: 0.5rem;
+    text-align: center;
+}
+
+/* ==========================================================================
+   6. FOOTER & RESPONSIVE BREAKPOINTS
+   ========================================================================== */
 footer {
     background-color: #0f172a;
     color: #94a3b8;
     text-align: center;
     padding: 1.5rem 0;
     margin-top: auto;
+}
+
+/* Mobile Responsiveness: Stack images vertically on small mobile screens */
+@media (max-width: 600px) {
+    .image-grid {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .image-card {
+        width: 100%;
+        max-width: 100%;
+    }
 }
