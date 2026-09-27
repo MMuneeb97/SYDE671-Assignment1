@@ -3,27 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Part 2 - Blog Writeup</title>
+    <title>Part 2 - digitizing Prokudin-Gorskii Glass Plate Images</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <header>
         <nav>
-            <a href="index.html" class="logo">MyBrand</a>
+            <a href="index.html" class="logo">Muhammad Muneeb</a>
             <ul class="nav-links">
                 <li><a href="index.html">Home</a></li>
-                <li><a href="part1.html">Part 1</a></li>
-                <li><a href="part2.html" class="active">Part 2</a></li>
-                <li><a href="about.html">About</a></li>
-                <li><a href="contact.html">Contact</a></li>
+                <li><a href="Part1.html">Part 1</a></li>
+                <li><a href="Part2.html" class="active">Part 2</a></li>
             </ul>
         </nav>
     </header>
 
     <main>
         <div class="card">
-            <h1>Part 2: Advanced Processing & Analysis</h1>
+            <h1>Advanced Processing & Analysis</h1>
             
             <p class="section-desc">
                 <em>Published on September 27, 2026 • By Muneeb</em>
@@ -32,7 +30,12 @@
             <!-- INTRODUCTION -->
             <div class="section-block">
                 <p>
-                    Welcome to Part 2 of the project. In this phase, we dive deeper into advanced image transformations and optimization algorithms. While Part 1 focused on fundamental channel alignments and preliminary baseline results, this article covers refined techniques to reduce edge noise and improve performance on high-resolution plates.
+                    Welcome to Part 2 of the asignment. In this phase, we dive deeper into advanced image processing. We will be colorizing the Russian Empire captured by Prokudin Gorskii as seperate Red, Blue and Green greyscale images.
+                    My approach to this assignment was broken into 3 main steps:
+                    - Step 1: Split the raw vertically stacked RGB images into seperate channels and combine using single scale displacement to produce a colored image.
+                    - Step 2: Step 2 takes things a step further an applies gaussian pyramid to down sample image and create smaller images to make it easier to process.
+                    - Step 3: Fine tning, one the images are combined into a final colored images, step 3 involves cleaning them up
+                    we will discuss each step in detail further in this blog.
                 </p>
                 
                 <!-- FEATURED FULL-WIDTH IMAGE -->
