@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Part 1 - My Website</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <nav>
+            <a href="index.html" class="logo">MyBrand</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="part1.html" class="active">Part 1</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="card">
+            <h1 style="text-align: center;">Part 1 Analysis</h1>
+            
+            <!-- SECTION 1 -->
+            <div class="section-block">
+                <h2 class="section-title">Section 1: Initial Results</h2>
+                <p class="section-desc">Comparison of the original unaligned image vs. the aligned result.</p>
+                
+                <div class="image-grid">
+                    <div class="image-card">
+                        <img src="https://via.placeholder.com/400x250" alt="Section 1 Image 1">
+                        <p class="image-caption">Image 1A - Original Input</p>
+                    </div>
+                    <div class="image-card">
+                        <img src="https://via.placeholder.com/400x250" alt="Section 1 Image 2">
+                        <p class="image-caption">Image 1B - Aligned Output</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2 -->
+            <div class="section-block">
+                <h2 class="section-title">Section 2: Channel Alignment</h2>
+                <p class="section-desc">Visual breakdown of the Green and Red channel displacement calculations.</p>
+                
+                <div class="image-grid">
+                    <div class="image-card">
+                        <img src="https://via.placeholder.com/400x250" alt="Section 2 Image 1">
+                        <p class="image-caption">Image 2A - Green Channel Shift</p>
+                    </div>
+                    <div class="image-card">
+                        <img src="https://via.placeholder.com/400x250" alt="Section 2 Image 2">
+                        <p class="image-caption">Image 2B - Red Channel Shift</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 3 -->
+            <div class="section-block">
+                <h2 class="section-title">Section 3: Final Output</h2>
+                <p class="section-desc">Comparison between full pyramid alignment and cropped final results.</p>
+                
+                <div class="image-grid">
+                    <div class="image-card">
+                        <img src="https://via.placeholder.com/400x250" alt="Section 3 Image 1">
+                        <p class="image-caption">Image 3A - Full Result</p>
+                    </div>
+                    <div class="image-card">
+                        <img src="https://via.placeholder.com/400x250" alt="Section 3 Image 2">
+                        <p class="image-caption">Image 3B - Cropped Boundary</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 MyBrand. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>
