@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Part 2 - Blog Writeup</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <nav>
+            <a href="index.html" class="logo">MyBrand</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="part1.html">Part 1</a></li>
+                <li><a href="part2.html" class="active">Part 2</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="card">
+            <h1>Part 2: Advanced Processing & Analysis</h1>
+            
+            <p class="section-desc">
+                <em>Published on September 27, 2026 • By Muneeb</em>
+            </p>
+
+            <!-- INTRODUCTION -->
+            <div class="section-block">
+                <p>
+                    Welcome to Part 2 of the project. In this phase, we dive deeper into advanced image transformations and optimization algorithms. While Part 1 focused on fundamental channel alignments and preliminary baseline results, this article covers refined techniques to reduce edge noise and improve performance on high-resolution plates.
+                </p>
+                
+                <!-- FEATURED FULL-WIDTH IMAGE -->
+                <div class="video-container" style="max-width: 650px;">
+                    <img src="images/part2_hero.jpg" alt="Overview diagram of the pipeline" style="width:100%; max-height:350px; object-fit:contain; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+                    <p class="image-caption">Figure 1: High-level architectural pipeline of the secondary transformation algorithm.</p>
+                </div>
+            </div>
+
+            <!-- SECTION 1: METHODOLOGY -->
+            <div class="section-block">
+                <h2 class="section-title">1. Pyramid Optimization & Edge Cropping</h2>
+                
+                <p>
+                    One major challenge with glass plate negatives is the presence of dark or damaged borders along the film margins. When computing Normalized Cross-Correlation (NCC) across color channels, these border artifacts skew shift vectors and produce inaccurate alignment offsets.
+                </p>
+                <p>
+                    To resolve this, we introduced dynamic border cropping before calculating the correlation matrix. By ignoring the outer 10%–15% margin of the array during shift evaluations, the correlation metric focuses strictly on high-frequency visual features inside the frame.
+                </p>
+
+                <!-- SIDE-BY-SIDE COMPARISON IMAGES -->
+                <div class="image-grid">
+                    <div class="image-card">
+                        <img src="images/part2_before_crop.jpg" alt="Border noise causing misalignments">
+                        <p class="image-caption">Figure 2A: Uncropped matrix with border artifacts.</p>
+                    </div>
+                    <div class="image-card">
+                        <img src="images/part2_after_crop.jpg" alt="Clean crop producing precise alignment">
+                        <p class="image-caption">Figure 2B: Dynamic margin cropping applied.</p>
+                    </div>
+                </div>
+
+                <p>
+                    As illustrated above, cropping the outer border prevents false peaks in the NCC metric and guarantees clean spatial alignment even across multi-scale Gaussian pyramid levels.
+                </p>
+            </div>
+
+            <!-- SECTION 2: RESULTS & OBSERVATIONS -->
+            <div class="section-block">
+                <h2 class="section-title">2. Quantitative Results & Key Takeaways</h2>
+                
+                <p>
+                    Evaluating the revised pipeline across the entire dataset demonstrated significant runtime and accuracy improvements. Higher resolution plates that previously required extensive manual adjustments were aligned automatically in under 5 seconds per image.
+                </p>
+
+                <!-- SINGLE CENTERED IMAGE -->
+                <div class="video-container" style="max-width: 500px;">
+                    <img src="images/part2_final_render.jpg" alt="Final reconstructed glass plate image" style="width:100%; max-height:300px; object-fit:contain; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+                    <p class="image-caption">Figure 3: Final reconstructed composite result.</p>
+                </div>
+
+                <p>
+                    In summary, combining slice-based array transformations with normalized metric evaluation provides a robust foundation for automated RGB glass plate restoration. Future work will explore automated color balancing and contrast adjustment.
+                </p>
+            </div>
+
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 MyBrand. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>
