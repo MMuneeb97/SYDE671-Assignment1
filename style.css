@@ -73,6 +73,12 @@ main {
     text_align: center;
 }
 
+.card h1, 
+.card p {
+    text-align: center;
+    width: 100%;
+}
+
 h1 {
     color: #0f172a;
     margin-bottom: 1rem;
