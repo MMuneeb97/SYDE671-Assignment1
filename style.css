@@ -226,18 +226,22 @@ footer {
     }
 }
 
+/* ==========================================================================
+   VIDEO CONTAINER STYLING (FIXED RESIZING)
+   ========================================================================== */
 .video-container {
-    width: 100%;
-    max-width: 350px;          /* Width matching an individual image card */
-    margin: 1.5rem auto;       /* Centers the video container */
+    width: 350px !important;       /* Hard limit matching image card width */
+    max-width: 100%;               /* Prevents overflow on mobile screens */
+    margin: 1.5rem auto;           /* Centers the video player */
     text-align: center;
 }
 
 .video-container video {
-    width: 100%;
-    height: 250px;             /* Exact height matching your images */
-    object-fit: contain;       /* Prevents video stretching/distortion */
+    width: 100% !important;
+    height: 250px !important;      /* Exact height matching your images */
+    object-fit: contain;           /* Scales video inside frame without stretching */
     border-radius: 6px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    background-color: #000;
+    background-color: #000;        /* Black letterbox background */
+    display: block;
 }
