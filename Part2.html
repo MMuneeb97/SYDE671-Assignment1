@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Part 2 - digitizing Prokudin-Gorskii Glass Plate Images</title>
+    <title>Part 2 - Digitizing Prokudin-Gorskii Glass Plate Images</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -21,74 +21,113 @@
 
     <main>
         <div class="card">
-            <h1>Advanced Processing & Analysis</h1>
+            <h1>Part 2: Digitizing Prokudin-Gorskii Glass Plate Images</h1>
             
             <p class="section-desc">
-                <em>Published on September 27, 2026 • By Muneeb</em>
+                <em>Published on September 27, 2026 • By Muhammad Muneeb</em>
             </p>
 
             <!-- INTRODUCTION -->
             <div class="section-block">
                 <p>
-                    Welcome to Part 2 of the asignment. In this phase, we dive deeper into advanced image processing. We will be colorizing the Russian Empire captured by Prokudin Gorskii as seperate Red, Blue and Green greyscale images.
-                    My approach to this assignment was broken into 3 main steps:
-                    - Step 1: Split the raw vertically stacked RGB images into seperate channels and combine using single scale displacement to produce a colored image.
-                    - Step 2: Step 2 takes things a step further an applies gaussian pyramid to down sample image and create smaller images to make it easier to process.
-                    - Step 3: Fine tning, one the images are combined into a final colored images, step 3 involves cleaning them up
-                    we will discuss each step in detail further in this blog.
+                    Welcome to Part 2 of the assignment. In this phase, we dive deeper into advanced image processing. We will be colorizing scenes from the Russian Empire captured by Sergei Mikhailovich Prokudin-Gorskii, which survive as three vertically stacked grayscale channel exposures (Blue, Green, and Red).
                 </p>
-                
-                <!-- FEATURED FULL-WIDTH IMAGE -->
-                <div class="video-container" style="max-width: 650px;">
-                    <img src="images/part2_hero.jpg" alt="Overview diagram of the pipeline" style="width:100%; max-height:350px; object-fit:contain; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
-                    <p class="image-caption">Figure 1: High-level architectural pipeline of the secondary transformation algorithm.</p>
-                </div>
+                <p>
+                    My approach to this assignment was broken into three primary stages:
+                </p>
+                <ul>
+                    <li><strong>Stage 1: Single-Scale Channel Splitting & Alignment</strong> — Splitting the raw vertically stacked glass plate into separate channels and computing baseline displacements on low-resolution inputs.</li>
+                    <li><strong>Stage 2: Multi-Scale Gaussian Pyramid Downsampling</strong> — Constructing coarse-to-fine pyramids to dramatically accelerate alignment search for high-resolution images.</li>
+                    <li><strong>Stage 3: Fine-Tuning & Border Crop Optimization</strong> — Offsetting metric evaluation away from plate margins to eliminate border artifacts and sharpen structural detail.</li>
+                </ul>
             </div>
 
-            <!-- SECTION 1: METHODOLOGY -->
+            <!-- SECTION 1: SINGLE-SCALE ALIGNMENT -->
             <div class="section-block">
-                <h2 class="section-title">1. Pyramid Optimization & Edge Cropping</h2>
-                
+                <h2 class="section-title">1. Single-Scale Baseline Alignment</h2>
                 <p>
-                    One major challenge with glass plate negatives is the presence of dark or damaged borders along the film margins. When computing Normalized Cross-Correlation (NCC) across color channels, these border artifacts skew shift vectors and produce inaccurate alignment offsets.
+                    For Part 2, the primary goal was to take a single grayscale glass plate image containing vertically stacked exposures captured through blue, green, and red filters, and align any two color channels relative to the third to produce a full-color RGB composite.
                 </p>
                 <p>
-                    To resolve this, we introduced dynamic border cropping before calculating the correlation matrix. By ignoring the outer 10%–15% margin of the array during shift evaluations, the correlation metric focuses strictly on high-frequency visual features inside the frame.
+                    I started off with the smaller JPEG images included in the dataset to test the logic and functionality of the program before analyzing the larger high-resolution plates.
+                </p>
+                <p>
+                    The input glass plate was split into separate Blue, Green, and Red channel arrays by slicing the image into three equal sections along its height (each $1/3$ the total height) while keeping full width for all three channels. After isolating the channels, I selected the <strong>Blue channel as the reference frame</strong> to align the Green and Red channels against.
+                </p>
+                <p>
+                    Using a search margin of $\pm 15$ pixels—defining a search window of 961 candidate displacements ($31 \times 31$)—I used the L2 scoring method (SSD) to calculate the optimal $(dx, dy)$ displacement vectors for both Green and Red. Once determined, both channels were shifted and stacked with the Blue channel to produce a colored image. While this single-scale approach was effective for smaller images, it became computationally slow when applied to high-resolution plates.
+                </p>
+            </div>
+
+            <!-- SECTION 2: GAUSSIAN PYRAMIDS -->
+            <div class="section-block">
+                <h2 class="section-title">2. Multi-Scale Gaussian Pyramid Downsampling</h2>
+                <p>
+                    To improve efficiency and speed up processing for larger images, I implemented the image pyramid method to downsample the images across scale levels. Downsampling effectively reduced the total pixel count at each stage, drastically lowering the number of calculations required to determine optimal displacement vectors.
+                </p>
+                <p>
+                    While the multi-scale concept is straightforward, I encountered a couple of key technical challenges:
+                </p>
+                <ul>
+                    <li>
+                        <strong>Kernel Optimization:</strong> My first implementation used a standard $3 \times 3$ blurring kernel, which still took over 4 minutes per image. After further testing, I switched to a separable $1 \times 5$ kernel pass, which significantly accelerated computation. Applying separable 1D horizontal and vertical filtering requires far fewer operations per pixel than evaluating a full 2D matrix at once.
+                    </li>
+                    <li>
+                        <strong>Border Noise & Metric Distortion:</strong> My second mistake was evaluating alignment scores over the full channel area. Because the glass plate channels had uneven, dark, and thick outer borders, the correlation metric was distorted by edge artifacts—leading to severe misalignments and noticeable color fringing.
+                    </li>
+                </ul>
+            </div>
+
+            <!-- SECTION 3: BORDER CROPPING & FINE-TUNING -->
+            <div class="section-block">
+                <h2 class="section-title">3. Fine-Tuning & Margin Crop Optimization</h2>
+                <p>
+                    Initially, evaluating alignment scores over the entire frame produced poor results—high-frequency details like train tracks failed to overlap cleanly to form a sharp picture.
                 </p>
 
-                <!-- SIDE-BY-SIDE COMPARISON IMAGES -->
+                <!-- SIDE-BY-SIDE COMPARISON: BEFORE VS AFTER CROP -->
                 <div class="image-grid">
                     <div class="image-card">
-                        <img src="images/part2_before_crop.jpg" alt="Border noise causing misalignments">
-                        <p class="image-caption">Figure 2A: Uncropped matrix with border artifacts.</p>
+                        <img src="images/train_uncropped.jpg" alt="Misaligned train image due to full-frame border evaluation">
+                        <p class="image-caption">Figure 1A: Misaligned result caused by full-frame border artifacts skewing displacement vectors.</p>
                     </div>
                     <div class="image-card">
-                        <img src="images/part2_after_crop.jpg" alt="Clean crop producing precise alignment">
-                        <p class="image-caption">Figure 2B: Dynamic margin cropping applied.</p>
+                        <img src="images/train_cropped.jpg" alt="Sharp train image aligned using 12 percent margin crop">
+                        <p class="image-caption">Figure 1B: Sharp alignment achieved after introducing a 12% margin crop during scoring.</p>
                     </div>
                 </div>
 
                 <p>
-                    As illustrated above, cropping the outer border prevents false peaks in the NCC metric and guarantees clean spatial alignment even across multi-scale Gaussian pyramid levels.
+                    To solve this, I shifted metric evaluation away from outer margins toward the center of the frame. By introducing a <strong>12% border margin crop</strong> during similarity calculations, the scoring function evaluated only high-intensity interior content. This produced significantly sharper, better-aligned composite images.
+                </p>
+                <p>
+                    While color fringing still appears along the outer borders due to raw plate edges, this can easily be trimmed with a final post-processing crop to keep focus strictly on the internal scene.
                 </p>
             </div>
 
-            <!-- SECTION 2: RESULTS & OBSERVATIONS -->
+            <!-- SECTION 4: GALLERY OF RESULTS -->
             <div class="section-block">
-                <h2 class="section-title">2. Quantitative Results & Key Takeaways</h2>
-                
+                <h2 class="section-title">4. Results & Comparative Analysis</h2>
                 <p>
-                    Evaluating the revised pipeline across the entire dataset demonstrated significant runtime and accuracy improvements. Higher resolution plates that previously required extensive manual adjustments were aligned automatically in under 5 seconds per image.
+                    Below are additional images processed with the refined pipeline, demonstrating varying outcomes based on plate quality and exposure characteristics:
                 </p>
 
-                <!-- SINGLE CENTERED IMAGE -->
-                <div class="video-container" style="max-width: 500px;">
-                    <img src="images/part2_final_render.jpg" alt="Final reconstructed glass plate image" style="width:100%; max-height:300px; object-fit:contain; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
-                    <p class="image-caption">Figure 3: Final reconstructed composite result.</p>
+                <!-- GALLERY ITEM 1: BEST RESULT -->
+                <div class="video-container" style="max-width: 550px;">
+                    <img src="images/best_result_colored.jpg" alt="Optimal alignment result with clean borders" style="width:100%; max-height:350px; object-fit:contain; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+                    <p class="image-caption">Figure 2: Optimal output. High border brightness and balanced exposure prevented border noise from distorting displacements.</p>
                 </div>
-
                 <p>
-                    In summary, combining slice-based array transformations with normalized metric evaluation provides a robust foundation for automated RGB glass plate restoration. Future work will explore automated color balancing and contrast adjustment.
+                    Figure 2 represents probably the best image that the program produced. Since the borders on this plate had high brightness and low exposure variance, there was no severe color fringing caused by misaligned displacements.
+                </p>
+
+                <!-- GALLERY ITEM 2: COLOR CAST CHALLENGE -->
+                <div class="video-container" style="max-width: 550px; margin-top: 2rem;">
+                    <img src="images/color_cast_sky.jpg" alt="Aligned image showing blue and green color cast in sky and grass" style="width:100%; max-height:350px; object-fit:contain; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+                    <p class="image-caption">Figure 3: Aligned composite exhibiting a heavy blue and green color cast across the sky and grass.</p>
+                </div>
+                <p>
+                    While Figure 3 aligned spatially well, it displays heavy blue and green color shifts across the sky and grass. This could be due to Blue being incorrectly chosen as the static reference channel for this specific exposure, or because color channel weighting was unbalanced. Implementing automated white balancing post-processing would refine these color dynamics further.
                 </p>
             </div>
 
@@ -96,7 +135,7 @@
     </main>
 
     <footer>
-        <p>&copy; 2026 MyBrand. All rights reserved.</p>
+        <p>&copy; 2026 Muhammad Muneeb. All rights reserved.</p>
     </footer>
 
 </body>
