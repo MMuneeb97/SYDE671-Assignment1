@@ -55,7 +55,7 @@
                     The input glass plate was split into separate Blue, Green, and Red channel arrays by slicing the image into three equal sections along its height (each 1/3 of the total height) while keeping full width for all three channels. After isolating the channels, I selected the <strong>Blue channel as the reference frame</strong> to align the Green and Red channels against.
                 </p>
                 <p>
-                    Using a search margin of +-15$ pixels—defining a search window of 961 candidate displacements (31 x 31)—I used the L2 scoring method (SSD) to calculate the optimal (dx, dy) displacement vectors for both Green and Red. Once determined, both channels were shifted and stacked with the Blue channel to produce a colored image. While this single-scale approach was effective for smaller images, it became computationally slow when applied to high-resolution plates.
+                    Using a search margin of +-15 pixels—defining a search window of 961 candidate displacements (31 x 31)—I used the L2 scoring method (SSD) to calculate the optimal (dx, dy) displacement vectors for both Green and Red. Once determined, both channels were shifted and stacked with the Blue channel to produce a colored image. While this single-scale approach was effective for smaller images, it became computationally slow when applied to high-resolution plates.
                 </p>
             </div>
 
@@ -88,11 +88,11 @@
                 <!-- SIDE-BY-SIDE COMPARISON: BEFORE VS AFTER CROP -->
                 <div class="image-grid">
                     <div class="image-card">
-                        <img src="images/00458u_colored-misaligned.jpg" alt="Misaligned train image due to full-frame border evaluation">
+                        <img src="images/00458u_colored-misaligned.png" alt="Misaligned train image due to full-frame border evaluation">
                         <p class="image-caption">Figure 1A: Misaligned result caused by full-frame border artifacts skewing displacement vectors.</p>
                     </div>
                     <div class="image-card">
-                        <img src="images/00458u_colored.jpg" alt="Sharp train image aligned using 12 percent margin crop">
+                        <img src="images/00458u_colored.png" alt="Sharp train image aligned using 12 percent margin crop">
                         <p class="image-caption">Figure 1B: Sharp alignment achieved after introducing a 12% margin crop during scoring.</p>
                     </div>
                 </div>
@@ -114,7 +114,7 @@
 
                 <!-- GALLERY ITEM 1: BEST RESULT -->
                 <div class="video-container" style="max-width: 550px;">
-                    <img src="images/00163v_colored.jpg" alt="Optimal alignment result with clean borders" style="width:100%; max-height:350px; object-fit:contain; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+                    <img src="images/00163v_colored.png" alt="Optimal alignment result with clean borders" style="width:100%; max-height:350px; object-fit:contain; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
                     <p class="image-caption">Figure 2: Optimal output. High border brightness and balanced exposure prevented border noise from distorting displacements.</p>
                 </div>
                 <p>
@@ -123,7 +123,7 @@
 
                 <!-- GALLERY ITEM 2: COLOR CAST CHALLENGE -->
                 <div class="video-container" style="max-width: 550px; margin-top: 2rem;">
-                    <img src="01164v_colored.jpg" alt="Aligned image showing blue and green color cast in sky and grass" style="width:100%; max-height:350px; object-fit:contain; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+                    <img src="01164v_colored.png" alt="Aligned image showing blue and green color cast in sky and grass" style="width:100%; max-height:350px; object-fit:contain; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
                     <p class="image-caption">Figure 3: Aligned composite exhibiting a heavy blue and green color cast across the sky and grass.</p>
                 </div>
                 <p>
@@ -131,7 +131,7 @@
                 </p>
 
                  <div class="video-container" style="max-width: 550px; margin-top: 2rem;">
-                    <img src="01522v_colored.jpg" alt="Perfectly aligned and well balanced image" style="width:100%; max-height:350px; object-fit:contain; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+                    <img src="01522v_colored.png" alt="Perfectly aligned and well balanced image" style="width:100%; max-height:350px; object-fit:contain; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
                     <p class="image-caption">Figure 4: Another example of a good image.</p>
                 </div>
                 <p>
@@ -139,7 +139,7 @@
                 </p>
 
                 <div class="video-container" style="max-width: 550px; margin-top: 2rem;">
-                    <img src="01657u_colored.jpg" alt="Aligned image showing color fringement along the border" style="width:100%; max-height:350px; object-fit:contain; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+                    <img src="01657u_colored.png" alt="Aligned image showing color fringement along the border" style="width:100%; max-height:350px; object-fit:contain; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
                     <p class="image-caption">Figure 5: Another example of color fringement along the border.</p>
                 </div>
                 <p>
