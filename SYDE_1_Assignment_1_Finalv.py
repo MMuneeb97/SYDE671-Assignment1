@@ -1,262 +1,187 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+'''
+import tkinter as tk
+from tkinter import filedialog
 
-# ============================================================
-# 1. LOAD IMAGE
-# ============================================================
+root = tk.Tk()
+root.withdraw()
 
-im = plt.imread(
-    r'C:\Users\Muhammad Muneeb\Desktop\Documents\Masters\SYDE 671\data\00056v.jpg'
+filepath = filedialog.askopenfilename(
+    title = "Select image to open",
+    filetypes = [("Image files", "*.jpg *.jpeg *.png *.tif *.tiff *.bmp"), ("All files","*.*")]
 )
 
-# Display original stacked image
-plt.imshow(im)
-# plt.show()
+if not filepath:
+    print("No image selected.")
+    exit()
+'''
 
+# --- CUSTOM SLICE-BASED SHIFT FUNCTION (Replaces np.roll) ---
+def shift_array_slice(arr, shift_y, shift_x):
+    """
+    Shifts a 2D numpy array using slice assignment instead of np.roll.
+    Pads out-of-bounds regions with zeros.
+    """
+    h, w = arr.shape
+    shifted = np.zeros_like(arr)
+    
+    # Calculate source (arr) and destination (shifted) slice coordinates
+    src_y_start = max(0, -shift_y)
+    src_y_end   = min(h, h - shift_y)
+    src_x_start = max(0, -shift_x)
+    src_x_end   = min(w, w - shift_x)
+    
+    dst_y_start = max(0, shift_y)
+    dst_y_end   = min(h, h + shift_y)
+    dst_x_start = max(0, shift_x)
+    dst_x_end   = min(w, w + shift_x)
+    
+    if (src_y_end > src_y_start) and (src_x_end > src_x_start):
+        shifted[dst_y_start:dst_y_end, dst_x_start:dst_x_end] = \
+            arr[src_y_start:src_y_end, src_x_start:src_x_end]
+            
+    return shifted
 
-# ============================================================
-# 2. SPLIT IMAGE INTO BLUE, GREEN, AND RED CHANNELS
-# ============================================================
+# 1. Read Image
+im = plt.imread(r'C:\Users\Muhammad Muneeb\Desktop\Documents\Masters\SYDE 671\data\31421v.jpg')
 
+# Normalize image to float [0, 1] if loaded as integers
+if im.dtype == np.uint8:
+    im = im.astype(float) / 255.0
+
+# 2. Split into B, G, R channels (top to bottom order in glass plates: B, G, R)
 h, w = im.shape
-
 channel_h = h // 3
 
 blue = im[0:channel_h, :]
 green = im[channel_h:2*channel_h, :]
 red = im[2*channel_h:3*channel_h, :]
 
+# Function to downsample image for Gaussian pyramid
+def scale_img(image):
+    kernel = np.array([1, 4, 6, 4, 1], dtype=float)
+    kernel = kernel / np.sum(kernel)
 
-# ============================================================
-# 3. NCC FUNCTION
-# ============================================================
-
-def ncc(reference_region, moving_region):
-
-    # Convert to floating point
-    reference_region = reference_region.astype(float)
-    moving_region = moving_region.astype(float)
-
-    # Subtract the mean from each image
-    reference_region = reference_region - np.mean(reference_region)
-    moving_region = moving_region - np.mean(moving_region)
-
-    # Numerator
-    nume = np.sum(reference_region * moving_region)
-
-    # Denominator
-    denom = np.sqrt(
-        np.sum(reference_region**2) *
-        np.sum(moving_region**2)
+    horizontal = np.zeros_like(image, dtype=float)
+    horizontal[:, 2:-2] = ( 
+        image[:, :-4] * kernel[0] + 
+        image[:, 1:-3] * kernel[1] + 
+        image[:, 2:-2] * kernel[2] + 
+        image[:, 3:-1] * kernel[3] + 
+        image[:, 4:] * kernel[4] 
     )
 
-    # Avoid division by zero
+    blurred = np.zeros_like(image, dtype=float)
+    blurred[2:-2, :] = ( 
+        horizontal[:-4, :] * kernel[0] + 
+        horizontal[1:-3, :] * kernel[1] + 
+        horizontal[2:-2, :] * kernel[2] + 
+        horizontal[3:-1, :] * kernel[3] + 
+        horizontal[4:, :] * kernel[4] 
+    )
+
+    return blurred[::2, ::2]
+
+# Build Pyramids
+N = 5
+blue_pyramid = [blue]
+green_pyramid = [green]
+red_pyramid = [red]
+
+for k in range(1, N):
+    blue_pyramid.append(scale_img(blue_pyramid[k-1]))
+    green_pyramid.append(scale_img(green_pyramid[k-1]))
+    red_pyramid.append(scale_img(red_pyramid[k-1]))
+
+# NCC Function with Zero-Mean Normalization
+def ncc(reference_region, moving_region):
+    ref_norm = reference_region - np.mean(reference_region)
+    mov_norm = moving_region - np.mean(moving_region)
+
+    nume = np.sum(ref_norm * mov_norm)
+    denom = np.sqrt(np.sum(ref_norm**2) * np.sum(mov_norm**2))
+
     if denom == 0:
         return -1
-
-    # NCC score
     return nume / denom
 
+# Crop function to remove borders during alignment score calculations
+def crop_inner_region(img, crop_percent=0.10):
+    h, w = img.shape
+    ch, cw = int(h * crop_percent), int(w * crop_percent)
+    return img[ch:h-ch, cw:w-cw]
 
-# ============================================================
-# 4. FIND DISPLACEMENT
-# ============================================================
-
-def find_displacement(reference, moving, margin):
-
-    h, w = reference.shape
-
-    # NCC is higher when the images match better
+# Alignment around a center displacement
+def find_displacement_around(reference, moving, center_dx, center_dy, margin):
     best_score = -1
+    best_dx, best_dy = center_dx, center_dy
 
-    best_dx = 0
-    best_dy = 0
+    # Crop outer edges to avoid matching border noise
+    crop_h, crop_w = int(reference.shape[0] * 0.12), int(reference.shape[1] * 0.12)
 
-    # Search through possible y displacements
-    for dy in range(-margin, margin + 1):
+    for dy in range(center_dy - margin, center_dy + margin + 1):
+        for dx in range(center_dx - margin, center_dx + margin + 1):
+            
+            # REPLACED np.roll with custom slice function
+            shifted_moving = shift_array_slice(moving, dy, dx)
 
-        # Search through possible x displacements
-        for dx in range(-margin, margin + 1):
+            # Evaluate score ONLY on the inner region of the cropped content
+            ref_crop = reference[crop_h:-crop_h, crop_w:-crop_w]
+            mov_crop = shifted_moving[crop_h:-crop_h, crop_w:-crop_w]
 
-            # Determine size of overlapping region
-            overlap_h = h - abs(dy)
-            overlap_w = w - abs(dx)
+            score = ncc(ref_crop, mov_crop)
 
-            # Skip invalid overlap
-            if overlap_h <= 0 or overlap_w <= 0:
-                continue
-
-            # Starting position in moving image
-            moving_y_start = max(0, dy)
-            moving_x_start = max(0, dx)
-
-            # Starting position in reference image
-            reference_y_start = max(0, -dy)
-            reference_x_start = max(0, -dx)
-
-            # Extract moving region
-            moving_region = moving[
-                moving_y_start:moving_y_start + overlap_h,
-                moving_x_start:moving_x_start + overlap_w
-            ]
-
-            # Extract reference region
-            reference_region = reference[
-                reference_y_start:reference_y_start + overlap_h,
-                reference_x_start:reference_x_start + overlap_w
-            ]
-
-            # Make sure both regions have the same size
-            if moving_region.shape != reference_region.shape:
-                continue
-
-            # Calculate NCC
-            score = ncc(
-                reference_region,
-                moving_region
-            )
-
-            # Keep the displacement with the highest NCC
             if score > best_score:
-
                 best_score = score
-
                 best_dx = dx
                 best_dy = dy
 
     return best_dx, best_dy
 
+# Recursive Pyramid Alignment
+def align_pyramid(reference_pyramid, moving_pyramid, level, margin=15):
+    if level == len(reference_pyramid) - 1:
+        return find_displacement_around(
+            reference_pyramid[level], 
+            moving_pyramid[level], 
+            0, 0, margin
+        )
 
-# ============================================================
-# 5. SET SEARCH WINDOW
-# ============================================================
+    # Recurse to coarser level
+    dx, dy = align_pyramid(reference_pyramid, moving_pyramid, level + 1, margin)
 
-margin = 15
+    # Scale shift prediction up by 2x
+    dx *= 2
+    dy *= 2
 
+    # Refine shift at current resolution level
+    return find_displacement_around(
+        reference_pyramid[level], 
+        moving_pyramid[level], 
+        dx, dy, margin=3
+    )
 
-# ============================================================
-# 6. ALIGN GREEN TO BLUE
-# ============================================================
+# Compute optimal displacements using Blue channel as reference
+best_green_dx, best_green_dy = align_pyramid(blue_pyramid, green_pyramid, 0)
+best_red_dx, best_red_dy = align_pyramid(blue_pyramid, red_pyramid, 0)
 
-green_dx, green_dy = find_displacement(
-    blue,
-    green,
-    margin
-)
+print(f"Green displacement (dx, dy): {best_green_dx}, {best_green_dy}")
+print(f"Red displacement (dx, dy): {best_red_dx}, {best_red_dy}")
 
+# REPLACED np.roll with custom slice function for final channel application
+green_aligned = shift_array_slice(green, best_green_dy, best_green_dx)
+red_aligned = shift_array_slice(red, best_red_dy, best_red_dx)
 
-# ============================================================
-# 7. ALIGN RED TO BLUE
-# ============================================================
+# Combine channels into final RGB image
+final_img = np.dstack((red_aligned, green_aligned, blue))
 
-red_dx, red_dy = find_displacement(
-    blue,
-    red,
-    margin
-)
+# Crop border artifact margins from display result
+crop_margin = 40
+final_cropped = final_img[crop_margin:-crop_margin, crop_margin:-crop_margin]
 
-
-# ============================================================
-# 8. PRINT DISPLACEMENTS
-# ============================================================
-
-print("Green displacement:", green_dx, green_dy)
-print("Red displacement:", red_dx, red_dy)
-
-
-# ============================================================
-# 9. FIND COMMON OVERLAPPING REGION
-# ============================================================
-
-top = max(
-    0,
-    green_dy,
-    red_dy
-)
-
-bottom = min(
-    channel_h,
-    channel_h + green_dy,
-    channel_h + red_dy
-)
-
-left = max(
-    0,
-    green_dx,
-    red_dx
-)
-
-right = min(
-    w,
-    w + green_dx,
-    w + red_dx
-)
-
-
-# ============================================================
-# 10. CALCULATE FINAL IMAGE SIZE
-# ============================================================
-
-height = bottom - top
-width = right - left
-
-
-# ============================================================
-# 11. CROP BLUE CHANNEL
-# ============================================================
-
-blue_aligned = blue[
-    top:bottom,
-    left:right
-]
-
-
-# ============================================================
-# 12. CROP ALIGNED GREEN CHANNEL
-# ============================================================
-
-green_aligned = green[
-    top - green_dy:
-    top - green_dy + height,
-
-    left - green_dx:
-    left - green_dx + width
-]
-
-
-# ============================================================
-# 13. CROP ALIGNED RED CHANNEL
-# ============================================================
-
-red_aligned = red[
-    top - red_dy:
-    top - red_dy + height,
-
-    left - red_dx:
-    left - red_dx + width
-]
-
-
-# ============================================================
-# 14. COMBINE CHANNELS INTO COLOR IMAGE
-# ============================================================
-
-final_img = np.dstack((
-    red_aligned,
-    green_aligned,
-    blue_aligned
-))
-
-
-# ============================================================
-# 15. DISPLAY FINAL IMAGE
-# ============================================================
-
-plt.figure()
-
-plt.imshow(final_img)
-
+plt.figure(figsize=(10, 8))
+plt.imshow(np.clip(final_cropped, 0, 1))
 plt.axis('off')
-
 plt.show()
