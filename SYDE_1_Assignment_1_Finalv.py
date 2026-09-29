@@ -18,12 +18,8 @@ if not filepath:
     exit()
 '''
 
-# --- CUSTOM SLICE-BASED SHIFT FUNCTION (Replaces np.roll) ---
+#Slicing to add 0 for out of bounds regions
 def shift_array_slice(arr, shift_y, shift_x):
-    """
-    Shifts a 2D numpy array using slice assignment instead of np.roll.
-    Pads out-of-bounds regions with zeros.
-    """
     h, w = arr.shape
     shifted = np.zeros_like(arr)
     
@@ -44,14 +40,14 @@ def shift_array_slice(arr, shift_y, shift_x):
             
     return shifted
 
-# 1. Read Image
+#Read Image
 im = plt.imread(r'C:\Users\Muhammad Muneeb\Desktop\Documents\Masters\SYDE 671\data\31421v.jpg')
 
-# Normalize image to float [0, 1] if loaded as integers
+#Normalize image to float [0, 1] if loaded as integers
 if im.dtype == np.uint8:
     im = im.astype(float) / 255.0
 
-# 2. Split into B, G, R channels (top to bottom order in glass plates: B, G, R)
+#Split into B, G, R channels (top to bottom order in glass plates: B, G, R)
 h, w = im.shape
 channel_h = h // 3
 
@@ -59,7 +55,7 @@ blue = im[0:channel_h, :]
 green = im[channel_h:2*channel_h, :]
 red = im[2*channel_h:3*channel_h, :]
 
-# Function to downsample image for Gaussian pyramid
+#Function to downsample image for Gaussian pyramid
 def scale_img(image):
     kernel = np.array([1, 4, 6, 4, 1], dtype=float)
     kernel = kernel / np.sum(kernel)
@@ -84,7 +80,7 @@ def scale_img(image):
 
     return blurred[::2, ::2]
 
-# Build Pyramids
+#Build Pyramids
 N = 5
 blue_pyramid = [blue]
 green_pyramid = [green]
@@ -95,7 +91,7 @@ for k in range(1, N):
     green_pyramid.append(scale_img(green_pyramid[k-1]))
     red_pyramid.append(scale_img(red_pyramid[k-1]))
 
-# NCC Function with Zero-Mean Normalization
+#NCC Function with Zero-Mean Normalization
 def ncc(reference_region, moving_region):
     ref_norm = reference_region - np.mean(reference_region)
     mov_norm = moving_region - np.mean(moving_region)
@@ -107,27 +103,26 @@ def ncc(reference_region, moving_region):
         return -1
     return nume / denom
 
-# Crop function to remove borders during alignment score calculations
+#Crop function to remove borders during alignment score calculations
 def crop_inner_region(img, crop_percent=0.10):
     h, w = img.shape
     ch, cw = int(h * crop_percent), int(w * crop_percent)
     return img[ch:h-ch, cw:w-cw]
 
-# Alignment around a center displacement
+#Alignment around a center displacement
 def find_displacement_around(reference, moving, center_dx, center_dy, margin):
     best_score = -1
     best_dx, best_dy = center_dx, center_dy
 
-    # Crop outer edges to avoid matching border noise
+    #Crop outer edges to avoid matching border noise
     crop_h, crop_w = int(reference.shape[0] * 0.12), int(reference.shape[1] * 0.12)
 
     for dy in range(center_dy - margin, center_dy + margin + 1):
         for dx in range(center_dx - margin, center_dx + margin + 1):
             
-            # REPLACED np.roll with custom slice function
             shifted_moving = shift_array_slice(moving, dy, dx)
 
-            # Evaluate score ONLY on the inner region of the cropped content
+            #Evaluate score ONLY on the inner region of the cropped content
             ref_crop = reference[crop_h:-crop_h, crop_w:-crop_w]
             mov_crop = shifted_moving[crop_h:-crop_h, crop_w:-crop_w]
 
@@ -140,7 +135,7 @@ def find_displacement_around(reference, moving, center_dx, center_dy, margin):
 
     return best_dx, best_dy
 
-# Recursive Pyramid Alignment
+#Recursive Pyramid Alignment
 def align_pyramid(reference_pyramid, moving_pyramid, level, margin=15):
     if level == len(reference_pyramid) - 1:
         return find_displacement_around(
@@ -149,35 +144,34 @@ def align_pyramid(reference_pyramid, moving_pyramid, level, margin=15):
             0, 0, margin
         )
 
-    # Recurse to coarser level
+    #Recurse to coarser level
     dx, dy = align_pyramid(reference_pyramid, moving_pyramid, level + 1, margin)
 
-    # Scale shift prediction up by 2x
+    #Scale shift prediction up by 2x
     dx *= 2
     dy *= 2
 
-    # Refine shift at current resolution level
+    #Refine shift at current resolution level
     return find_displacement_around(
         reference_pyramid[level], 
         moving_pyramid[level], 
         dx, dy, margin=3
     )
 
-# Compute optimal displacements using Blue channel as reference
+#Compute displacements using Blue channel as reference
 best_green_dx, best_green_dy = align_pyramid(blue_pyramid, green_pyramid, 0)
 best_red_dx, best_red_dy = align_pyramid(blue_pyramid, red_pyramid, 0)
 
 print(f"Green displacement (dx, dy): {best_green_dx}, {best_green_dy}")
 print(f"Red displacement (dx, dy): {best_red_dx}, {best_red_dy}")
 
-# REPLACED np.roll with custom slice function for final channel application
 green_aligned = shift_array_slice(green, best_green_dy, best_green_dx)
 red_aligned = shift_array_slice(red, best_red_dy, best_red_dx)
 
-# Combine channels into final RGB image
+#Combine channels into final RGB image
 final_img = np.dstack((red_aligned, green_aligned, blue))
 
-# Crop border artifact margins from display result
+#Crop border artifact margins from display result
 crop_margin = 40
 final_cropped = final_img[crop_margin:-crop_margin, crop_margin:-crop_margin]
 
